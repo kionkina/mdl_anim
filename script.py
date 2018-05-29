@@ -84,26 +84,23 @@ def second_pass( commands):
     global knobs
     for i in range(int(num_frames)):
         knobs.append({})
-    print knobs
+ #   print knobs
     for command in commands:
         cmd = command['op']
         args = command['args']
     
-    if cmd == "vary":
-        k = command['knob']
-        start_f = args[0]
-        end_f = args[1]
-        start_v = args[2]
-        end_v = args[3]
-        k_val = start_v
-        incr = (end_v - start_v) / (end_f - start_f)
+        if cmd == "vary":
+            k = command['knob']
+            start_f = args[0]
+            end_f = args[1]
+            start_v = args[2]
+            end_v = args[3]
+            k_val = start_v
+            incr = (end_v - start_v) / (end_f - start_f)
 
-        for i in range(int(start_f), int(end_f +1)):
+            for i in range(int(start_f), int(end_f +1)):
             
-            if i  == end_f:
-                k_val = end_v
-            knobs[i][k] = k_val
-            k_val += incr
+                knobs[i][k] = start_v + incr * (i- start_v)
         
 
 def run(filename):
@@ -159,13 +156,14 @@ def run(filename):
     
 
     for f in range(int(num_frames)):
-        
-
+#        print "BOOP"
+#        print "FRAME # +"
+#        print f
         for k in knobs[f]:
             symbols[k][1] = knobs[f][k] 
 
         for command in commands:
-            print command
+#            print command
             c = command['op']
             args = command['args']
 
@@ -173,9 +171,14 @@ def run(filename):
             #KeyError: 'knob'
             #KeyError: None
 
-            if (not args ==  None) and 'knob' in command and (not command['knob'] == None):
+            if (not args == None):
+                args = command['args'][:]
+            
+            if (not args ==  None) and 'knob' in command and (not command['knob'] == None) and (c == "move" or c == "scale" or c == "rotate"):
                 k = command['knob']
-                args = [args[i] * symbols[k][1] for i in range(len(args))]
+                for i in range(len(args)):
+                    if not isinstance(args[i], basestring):
+                        args[i] = args[i] * symbols[k][1]
 
 
             if c == 'box':
@@ -246,16 +249,16 @@ def run(filename):
             elif c == 'save':
                 save_extension(screen, args[0])
 
-            if animate == 1:
-                save_extension(screen, ("./anim/" + basename + (str(int(f)) + ".png")))
+        if animate == 1:
+            save_extension(screen, ("./anim/" + basename + ('%03d.png' %int(f))))
 
-            tmp = new_matrix()
-            ident( tmp )
-            stack = [ [x[:] for x in tmp] ]
-            screen = new_screen()
-            zbuffer = new_zbuffer()
-            tmp = []
-            step_3d = 20
+        tmp = new_matrix()
+        ident( tmp )
+        stack = [ [x[:] for x in tmp] ]
+        screen = new_screen()
+        zbuffer = new_zbuffer()
+        tmp = []
+        step_3d = 20
 
-            if animate:
-                make_animation(basename)
+    if animate == 1:
+        make_animation(basename)
